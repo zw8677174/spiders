@@ -1,21 +1,19 @@
 import scrapy
+from ..models.db import Bilibili
 
 
 class QuotesSpider(scrapy.Spider):
-    name = "quotes"
+    name = "bilibili"
+    urls = []
 
     def start_requests(self):
-        urls = [
-            'http://quotes.toscrape.com/page/1/',
-            'http://quotes.toscrape.com/page/2/',
-        ]
-        for url in urls:
+        for i in range(1, 2000000):
+            self.urls.append('https://www.bilibili.com/video/av' + str(i))
+        for url in self.urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
-        page = response.url.split("/")[-2]
-        filename = 'quotes-%s.html' % page
-        with open(filename, 'wb') as f:
-            f.write(response.body)
-
-        self.log('Saved file %s' % filename)
+        name = response.xpath('//h1/text()').extract_first()
+        if name is not None:
+            print(name)
+            Bilibili.insert(name=name).execute()
